@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" >/dev/null && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." >/dev/null && pwd)"
 
 # Full Xcode (NOT just Command Line Tools) is required by configure_frameworks.sh.
-XCODE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+XCODE_DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}"
 # CMake 4.x removed compatibility with cmake_minimum_required(VERSION < 3.5),
 # which some bundled sources (mozjpeg, td) still declare. This lets them configure.
 export CMAKE_POLICY_VERSION_MINIMUM=3.5
@@ -59,7 +59,7 @@ BREW_PACKAGES=(
   meson        # dav1d
   nasm         # OpenH264 (x86_64 assembly)
   yasm         # ffmpeg / libvpx assembly
-  openssl@1.1  # used by several configure steps
+  openssl@3    # host tools; app framework uses pinned bundled sources
   zlib
   autoconf
   libtool
