@@ -6,9 +6,9 @@ url=git@github.com:telegramdesktop/libtgvoip
 	url = git@github.com:macosswift/sparkle.git
 	branch = master
 [submodule "submodules/telegram-ios"]
-	branch = master
+	branch = risegram/macos-core
 	path = submodules/telegram-ios
-	url = https://github.com/TelegramMessenger/Telegram-iOS
+	url = https://github.com/whatohelp-svg/Telegram-iOS.git
 [submodule "submodules/tgcalls"]
 	path = submodules/tgcalls
 	url = git@github.com:TelegramMessenger/tgcalls.git
