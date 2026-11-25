@@ -1,0 +1,44 @@
+name: RiseGram macOS experimental build
+on:
+  push:
+    branches: [risegram/native-port]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout native dependencies
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://gitlab.com/".insteadOf "git@gitlab.com:"
+          git submodule update --init --recursive
+      - name: Prepare native frameworks
+        env:
+          CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+        run: |
+          set -e
+          xcodebuild -version
+          if xcodebuild -version | grep -q '^Xcode 27'; then
+            sh scripts/xcode27.sh apply
+          fi
+          sh scripts/setup_build_env.sh --build
+      - name: Compile unsigned experimental application
+        run: |
+          xcodebuild -workspace Telegram-Mac.xcworkspace -scheme Telegram -configuration Debug -derivedDataPath "$RUNNER_TEMP/rg-build" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: Package test build
+        run: |
+          set -e
+          APP="$(find "$RUNNER_TEMP/rg-build/Build/Products/Debug" -maxdepth 1 -name '*.app' -print -quit)"
+          test -n "$APP"
+          mkdir -p artifacts
+          hdiutil create -volname RiseGram-experimental -srcfolder "$APP" -format UDZO artifacts/RiseGram-macOS-experimental.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RiseGram-macOS-experimental-unsigned
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 7
