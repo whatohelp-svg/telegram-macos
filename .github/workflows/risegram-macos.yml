@@ -25,15 +25,24 @@ jobs:
         env:
           CMAKE_POLICY_VERSION_MINIMUM: '3.5'
         run: |
-          set -e
+          set -euo pipefail
+          brew --version
           xcodebuild -version
           if xcodebuild -version | grep -q '^Xcode 27'; then
             sh scripts/xcode27.sh apply
           fi
-          sh scripts/setup_build_env.sh --build
+          bash scripts/setup_build_env.sh --build 2>&1 | tee "$RUNNER_TEMP/risegram-frameworks.log"
       - name: Compile unsigned experimental application
         run: |
           xcodebuild -workspace Telegram-Mac.xcworkspace -scheme Telegram -configuration Debug -derivedDataPath "$RUNNER_TEMP/rg-build" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: Upload framework diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RiseGram-macOS-framework-log
+          path: ${{ runner.temp }}/risegram-frameworks.log
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Package test build
         run: |
           set -e
